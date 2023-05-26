@@ -21,6 +21,7 @@ export type TLTextShapeProps = {
 	text: string
 	scale: number
 	autoSize: boolean
+	isChatAI: boolean
 }
 
 /** @public */
@@ -39,6 +40,7 @@ export const textShapeTypeValidator: T.Validator<TLTextShape> = createShapeValid
 		text: T.string,
 		scale: T.nonZeroNumber,
 		autoSize: T.boolean,
+		isChatAI: T.boolean,
 	})
 )
 

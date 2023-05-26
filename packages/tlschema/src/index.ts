@@ -97,6 +97,12 @@ export {
 } from './records/TLUserDocument'
 export { storeMigrations } from './schema'
 export {
+	sdimageShapeTypeMigrations,
+	sdimageShapeTypeValidator,
+	type SDImageShape,
+	type SDImageShapeProps,
+} from './shapes/SDImageShape'
+export {
 	TL_ARROW_TERMINAL_TYPE,
 	arrowShapeTypeMigrations,
 	arrowShapeTypeValidator,

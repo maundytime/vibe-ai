@@ -15,4 +15,10 @@ export default defineConfig({
 	optimizeDeps: {
 		exclude: ['@tldraw/assets'],
 	},
+	resolve: {
+		alias: {
+			'@tldraw/tldraw/editor.css': path.resolve(__dirname, '../../packages/editor/editor.css'),
+			'@tldraw/tldraw/ui.css': path.resolve(__dirname, '../../packages/ui/ui.css'),
+		},
+	},
 })

@@ -8,6 +8,7 @@ import {
 	TLShapePartial,
 } from '@tldraw/tlschema'
 import { deepCopy } from '@tldraw/utils'
+import { TLArrowUtil } from '../../../shapeutils/TLArrowUtil/TLArrowUtil'
 import {
 	TLCancelEvent,
 	TLEventHandlers,
@@ -152,6 +153,13 @@ export class DraggingHandle extends StateNode {
 		this.app.setHintingIds([])
 		this.app.snaps.clear()
 		this.app.setCursor({ type: 'default' })
+
+		const arrowShape = this.app.getShapeById(this.shapeId)
+		if (!arrowShape || arrowShape.type !== 'arrow') {
+			return
+		}
+		const arrowUtil = this.app.getShapeUtil(arrowShape) as TLArrowUtil
+		arrowUtil.onDraggingExit(arrowShape as TLArrowShape)
 	}
 
 	private complete() {

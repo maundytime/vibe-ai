@@ -63,6 +63,7 @@ export class TLGeoUtil extends TLBoxUtil<TLGeoShape> {
 			verticalAlign: 'middle',
 			growY: 0,
 			url: '',
+			isChatAI: false,
 		}
 	}
 

@@ -33,6 +33,7 @@ import * as React_2 from 'react';
 import { default as React_3 } from 'react';
 import { RecordType } from '@tldraw/tlstore';
 import { RotateCorner } from '@tldraw/primitives';
+import { SDImageShape } from '@tldraw/tlschema';
 import { SelectionCorner } from '@tldraw/primitives';
 import { SelectionEdge } from '@tldraw/primitives';
 import { SelectionHandle } from '@tldraw/primitives';
@@ -338,6 +339,8 @@ export class App extends EventEmitter<TLEventMap> {
     set isCoarsePointer(v: boolean);
     // (undocumented)
     get isDarkMode(): boolean;
+    // (undocumented)
+    get isDev(): boolean;
     get isFocused(): boolean;
     // (undocumented)
     get isFocusMode(): boolean;
@@ -433,6 +436,41 @@ export class App extends EventEmitter<TLEventMap> {
     };
     // (undocumented)
     get scribble(): null | TLScribble;
+    // (undocumented)
+    get sdcnParameter(): string;
+    set sdcnParameter(value: string);
+    // (undocumented)
+    get sdcnParameterObject(): {};
+    // (undocumented)
+    get sdInterrogateModel(): "clip" | "deepdanbooru";
+    // (undocumented)
+    get sdParameter(): string;
+    set sdParameter(value: string);
+    // (undocumented)
+    get sdParameterObject(): {
+        negative_prompt: string;
+        steps: number;
+        cfg_scale: number;
+        sampler_name: string;
+    };
+    // (undocumented)
+    sdSetPreferSize: (value: {
+        w: number;
+        h: number;
+    }) => void;
+    // (undocumented)
+    get sdSize(): {
+        sdRequestSize: {
+            w: number;
+            h: number;
+        };
+        properShapeSize: {
+            w: number;
+            h: number;
+        };
+    };
+    // (undocumented)
+    get sdURL(): "http://localhost:7860" | "https://sd.postneko.workers.dev";
     select(...ids: TLShapeId[]): this;
     selectAll(): this;
     get selectedIds(): TLShapeId[];
@@ -1575,11 +1613,15 @@ export class TLArrowUtil extends TLShapeUtil<TLArrowShape> {
     // (undocumented)
     defaultProps(): TLArrowShape['props'];
     // (undocumented)
+    findBindingTree(shape: TLShape, containFirst?: boolean): TLShape[];
+    // (undocumented)
     getArrowInfo(shape: TLArrowShape): ArrowInfo | undefined;
     // (undocumented)
     getBounds(shape: TLArrowShape): Box2d;
     // (undocumented)
     getCenter(shape: TLArrowShape): Vec2d;
+    // (undocumented)
+    getCroppedAsset: (imageShape: TLImageShape) => null | string;
     // (undocumented)
     getEditingBounds: (shape: TLArrowShape) => Box2d;
     // (undocumented)
@@ -1609,13 +1651,21 @@ export class TLArrowUtil extends TLShapeUtil<TLArrowShape> {
     // (undocumented)
     get labelBoundsCache(): ComputedCache<Box2d | null, TLArrowShape>;
     // (undocumented)
+    onAnyToImage: (arrowShape: TLArrowShape, sdimageShape: SDImageShape) => Promise<void>;
+    // (undocumented)
     onDoubleClickHandle: (shape: TLArrowShape, handle: TLHandle) => TLShapePartial<TLArrowShape> | void;
+    // (undocumented)
+    onDraggingExit: (arrowShape: TLArrowShape) => void;
     // (undocumented)
     onEditEnd: OnEditEndHandler<TLArrowShape>;
     // (undocumented)
     onHandleChange: OnHandleChangeHandler<TLArrowShape>;
     // (undocumented)
+    onImageToText: (arrowShape: TLArrowShape, startImageShape: TLImageShape, endEmptyGeoShape?: TLGeoShape) => void;
+    // (undocumented)
     onResize: OnResizeHandler<TLArrowShape>;
+    // (undocumented)
+    onTextToText: (arrowShape: TLArrowShape, startTextKindShape: TLGeoShape | TLTextShape, endEmptyGeoShape?: TLGeoShape) => void;
     // (undocumented)
     onTranslateStart: OnTranslateStartHandler<TLArrowShape>;
     // (undocumented)
@@ -2085,6 +2135,7 @@ export class TLGeoUtil extends TLBoxUtil<TLGeoShape> {
             w: number;
             h: number;
             text: string;
+            isChatAI: boolean;
         };
         type: "geo";
         x: number;
@@ -2114,6 +2165,7 @@ export class TLGeoUtil extends TLBoxUtil<TLGeoShape> {
             w: number;
             h: number;
             text: string;
+            isChatAI: boolean;
         };
         type: "geo";
         x: number;
@@ -2558,6 +2610,7 @@ export class TLTextUtil extends TLShapeUtil<TLTextShape> {
             text: string;
             scale: number;
             autoSize: boolean;
+            isChatAI: boolean;
         };
         type: "text";
         rotation: number;

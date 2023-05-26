@@ -2366,6 +2366,18 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@ffmpeg/ffmpeg@npm:^0.11.6":
+  version: 0.11.6
+  resolution: "@ffmpeg/ffmpeg@npm:0.11.6"
+  dependencies:
+    is-url: ^1.2.4
+    node-fetch: ^2.6.1
+    regenerator-runtime: ^0.13.7
+    resolve-url: ^0.2.1
+  checksum: 496950c148dd16154f127106ddb533c4c84252abba875bc00c8cb1dabfaa21ba030b4fda954b7ec583b1af17fc362216d7a0c8a8ab5d346f871425cfaf392dfd
+  languageName: node
+  linkType: hard
+
 "@floating-ui/core@npm:^0.7.3":
   version: 0.7.3
   resolution: "@floating-ui/core@npm:0.7.3"
@@ -4634,6 +4646,7 @@ __metadata:
     is-plain-object: ^5.0.0
     jest-canvas-mock: ^2.4.0
     jest-environment-jsdom: ^29.4.3
+    js-base64: ^3.7.5
     lazyrepo: 0.0.0-alpha.26
     lodash.throttle: ^4.1.1
     lodash.uniq: ^4.5.0
@@ -5574,6 +5587,17 @@ __metadata:
     "@types/scheduler": "*"
     csstype: ^3.0.2
   checksum: 4eaf32b86c43f388c681e34a00921c508dd88a1d1022aebfadc5fe802b7c5bed863de1a17eed31e43ca2d65222952dfe79a022055a0e6e4e1ad89fc5a42ec05e
+  languageName: node
+  linkType: hard
+
+"@types/react@npm:^18.0.28":
+  version: 18.2.7
+  resolution: "@types/react@npm:18.2.7"
+  dependencies:
+    "@types/prop-types": "*"
+    "@types/scheduler": "*"
+    csstype: ^3.0.2
+  checksum: caa5da4cf929766738ec789301dc6fb6624bd48dd317d851c4c9b84b1f47cd8ebe17fe01398cadaa0bc938cd4d502d67f4b9de9ff771dc132096bdc86228efba
   languageName: node
   linkType: hard
 
@@ -10952,23 +10976,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"examples.tldraw.com@workspace:apps/examples":
-  version: 0.0.0-use.local
-  resolution: "examples.tldraw.com@workspace:apps/examples"
-  dependencies:
-    "@babel/plugin-proposal-decorators": ^7.21.0
-    "@tldraw/assets": "workspace:*"
-    "@tldraw/tldraw": "workspace:*"
-    "@vercel/analytics": ^1.0.1
-    lazyrepo: 0.0.0-alpha.26
-    react: ^18.2.0
-    react-dom: ^18.2.0
-    react-router-dom: ^6.9.0
-    signia: 0.1.4
-    signia-react: 0.1.4
-    vite: ^4.3.4
-  languageName: unknown
-  linkType: soft
+"eventsource-parser@npm:^1.0.0":
+  version: 1.0.0
+  resolution: "eventsource-parser@npm:1.0.0"
+  checksum: 1bcef98c6e35e5afe6bdbcd6985187d26f3e706f7283a9a8e114491322a2a3be6fb75298ad8426bd5f7ca3de99a632417e8b60d14cc9bc3f4b6aebc03a81c00d
+  languageName: node
+  linkType: hard
 
 "execa@npm:5.1.1, execa@npm:^5.0.0, execa@npm:^5.1.1":
   version: 5.1.1
@@ -12546,6 +12559,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"hark@npm:^1.2.3":
+  version: 1.2.3
+  resolution: "hark@npm:1.2.3"
+  dependencies:
+    wildemitter: ^1.2.0
+  checksum: 34ee034011abe86c3aa24b991180213c04fe34d217ec767daa31479d509ff88d34403473c3c826ed3d41a329de1b60a3544450b190c229b21053cc989a29fd1f
+  languageName: node
+  linkType: hard
+
 "has-ansi@npm:^2.0.0":
   version: 2.0.0
   resolution: "has-ansi@npm:2.0.0"
@@ -13876,7 +13898,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"javascript-stringify@npm:^2.0.1":
+"javascript-stringify@npm:^2.0.1, javascript-stringify@npm:^2.1.0":
   version: 2.1.0
   resolution: "javascript-stringify@npm:2.1.0"
   checksum: 009981ec84299da88795fc764221ed213e3d52251cc93a396430a7a02ae09f1163a9be36a36808689681a8e6113cf00fe97ec2eea2552df48111f79be59e9358
@@ -14446,6 +14468,13 @@ __metadata:
   version: 1.4.0
   resolution: "jju@npm:1.4.0"
   checksum: 3790481bd2b7827dd6336e6e3dc2dcc6d425679ba7ebde7b679f61dceb4457ea0cda330972494de608571f4973c6dfb5f70fab6f3c5037dbab19ac449a60424f
+  languageName: node
+  linkType: hard
+
+"js-base64@npm:^3.7.5":
+  version: 3.7.5
+  resolution: "js-base64@npm:3.7.5"
+  checksum: 67a78c8b1c47b73f1c6fba1957e9fe6fd9dc78ac93ac46cc2e43472dcb9cf150d126fb0e593192e88e0497354fa634d17d255add7cc6ee3c7b4d29870faa8e18
   languageName: node
   linkType: hard
 
@@ -16983,6 +17012,20 @@ __metadata:
   languageName: node
   linkType: hard
 
+"node-fetch@npm:^2.6.1":
+  version: 2.6.11
+  resolution: "node-fetch@npm:2.6.11"
+  dependencies:
+    whatwg-url: ^5.0.0
+  peerDependencies:
+    encoding: ^0.1.0
+  peerDependenciesMeta:
+    encoding:
+      optional: true
+  checksum: 249d0666a9497553384d46b5ab296ba223521ac88fed4d8a17d6ee6c2efb0fc890f3e8091cafe7f9fba8151a5b8d925db2671543b3409a56c3cd522b468b47b3
+  languageName: node
+  linkType: hard
+
 "node-forge@npm:^1.3.1":
   version: 1.3.1
   resolution: "node-forge@npm:1.3.1"
@@ -19037,6 +19080,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"recordrtc@npm:^5.6.2":
+  version: 5.6.2
+  resolution: "recordrtc@npm:5.6.2"
+  checksum: 4be66e42fd427a86e5726afcf061963a5a16d7900d535debd2754d63ee9768d6fda8b5a7592e9835ac4b98b37d4dd73490b793f82c038d45e95dcdcc27f57d2c
+  languageName: node
+  linkType: hard
+
 "recursive-readdir@npm:^2.2.2":
   version: 2.2.3
   resolution: "recursive-readdir@npm:2.2.3"
@@ -19079,7 +19129,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"regenerator-runtime@npm:^0.13.11, regenerator-runtime@npm:^0.13.4":
+"regenerator-runtime@npm:^0.13.11, regenerator-runtime@npm:^0.13.4, regenerator-runtime@npm:^0.13.7":
   version: 0.13.11
   resolution: "regenerator-runtime@npm:0.13.11"
   checksum: 27481628d22a1c4e3ff551096a683b424242a216fee44685467307f14d58020af1e19660bf2e26064de946bad7eff28950eae9f8209d55723e2d9351e632bbb4
@@ -19395,6 +19445,13 @@ __metadata:
   version: 5.0.0
   resolution: "resolve-from@npm:5.0.0"
   checksum: 4ceeb9113e1b1372d0cd969f3468fa042daa1dd9527b1b6bb88acb6ab55d8b9cd65dbf18819f9f9ddf0db804990901dcdaade80a215e7b2c23daae38e64f5bdf
+  languageName: node
+  linkType: hard
+
+"resolve-url@npm:^0.2.1":
+  version: 0.2.1
+  resolution: "resolve-url@npm:0.2.1"
+  checksum: 7b7035b9ed6e7bc7d289e90aef1eab5a43834539695dac6416ca6e91f1a94132ae4796bbd173cdacfdc2ade90b5f38a3fb6186bebc1b221cd157777a23b9ad14
   languageName: node
   linkType: hard
 
@@ -22136,6 +22193,20 @@ __metadata:
   languageName: node
   linkType: hard
 
+"use-whisper@npm:^0.0.1":
+  version: 0.0.1
+  resolution: "use-whisper@npm:0.0.1"
+  dependencies:
+    "@ffmpeg/ffmpeg": ^0.11.6
+    "@types/react": ^18.0.28
+    hark: ^1.2.3
+    recordrtc: ^5.6.2
+  peerDependencies:
+    react: "*"
+  checksum: 1c955fec3abc8e66439d9f24b366a2f94080746112b717d00744d2b8264ceca214697f51ff7f11f6921d82ed1d7333e9dda28cb4fd1bed005a8dce96b54ee9aa
+  languageName: node
+  linkType: hard
+
 "user-home@npm:^2.0.0":
   version: 2.0.0
   resolution: "user-home@npm:2.0.0"
@@ -22329,6 +22400,29 @@ __metadata:
   checksum: 642cce703afc186dbe7cabf698dc954c70146e853491086f5da39e1ce850676fc96b169fcf7898aa3ff245e9313aeec40da93acd1e1fcc0c146dc4f6308b4ef9
   languageName: node
   linkType: hard
+
+"vibe-ai-examples@workspace:apps/examples":
+  version: 0.0.0-use.local
+  resolution: "vibe-ai-examples@workspace:apps/examples"
+  dependencies:
+    "@babel/plugin-proposal-decorators": ^7.21.0
+    "@tldraw/assets": "workspace:*"
+    "@tldraw/primitives": "workspace:*"
+    "@tldraw/tldraw": "workspace:*"
+    "@vercel/analytics": ^1.0.1
+    eventsource-parser: ^1.0.0
+    javascript-stringify: ^2.1.0
+    js-base64: ^3.7.5
+    lazyrepo: 0.0.0-alpha.26
+    react: ^18.2.0
+    react-dom: ^18.2.0
+    react-router-dom: ^6.9.0
+    signia: 0.1.4
+    signia-react: 0.1.4
+    use-whisper: ^0.0.1
+    vite: ^4.3.4
+  languageName: unknown
+  linkType: soft
 
 "vite-node@npm:^0.28.5":
   version: 0.28.5
@@ -22954,6 +23048,13 @@ __metadata:
   dependencies:
     string-width: ^1.0.2 || 2 || 3 || 4
   checksum: d5fc37cd561f9daee3c80e03b92ed3e84d80dde3365a8767263d03dacfc8fa06b065ffe1df00d8c2a09f731482fcacae745abfbb478d4af36d0a891fad4834d3
+  languageName: node
+  linkType: hard
+
+"wildemitter@npm:^1.2.0":
+  version: 1.2.1
+  resolution: "wildemitter@npm:1.2.1"
+  checksum: 3f1cc144b14db9a0eb0fb842b19ec929b6a27fe57ea6da8e6d01e707cf3736e34a124a403359ee8801f41b82c087907ad31fa75688fe55f9df2d563951577545
   languageName: node
   linkType: hard
 

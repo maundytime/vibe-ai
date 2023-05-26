@@ -1,0 +1,109 @@
+{
+	"shapes": [
+		{
+			"x": 0,
+			"y": 0,
+			"rotation": 0,
+			"isLocked": false,
+			"id": "shape:lMzsKItV-8NyBRZoXUlfR",
+			"type": "text",
+			"props": {
+				"opacity": "1",
+				"color": "black",
+				"size": "m",
+				"w": 8,
+				"text": "car, sydmead_style, <lora:syd_mead_style:1>",
+				"font": "draw",
+				"align": "start",
+				"autoSize": true,
+				"scale": 1,
+				"isChatAI": false
+			},
+			"parentId": "page:HLiKfm9idJW76swUknOeX",
+			"index": "a1",
+			"typeName": "shape"
+		},
+		{
+			"x": 0,
+			"y": 200,
+			"rotation": 0,
+			"isLocked": false,
+			"id": "shape:BmGE79OmGZw-sEdyDeC1t",
+			"type": "text",
+			"props": {
+				"opacity": "1",
+				"color": "black",
+				"size": "m",
+				"text": "Vibe Canvas AI Demo 0.1\n\n\n⌨️  tools in demo\n\n[s] star tool: demo use star tool as stable diffusion frame tool\n[a] arrow: demo use arrow to represent AI creating command\n[t] text\n[r] rectangle\n[f] frame: demo use frame to specify area to sketch\n\n\n📝 → 🌁  txt2img\n\n1. use star tool to draw rect, use arrow tool, drag from prompt to rect.\n2. edit prompt, redo step 1.\n\n\n🌁 → 🌁  img2img\n\n3. use arrow tool to link images and texts, think these as prompts flow, redo step 1.\n4. use frame tool to draw rect, use pen sketch to sketch inside, think frame as prompt, redo step 3.\n\n\n🌁 → 📝  img2txt\n\n5. use arrow tool, drag from any image to anywhere.\n6. double click image to crop, redo step 5.\n\n\n📝 → 📝  txt2txt\n\n7. use arrow tool, drag from any text to anywhere.\n8. use arrow tool, drag from any shape containing text to anywhere.\n\n\nTo see tips again, delete all content and refresh web page.",
+				"font": "draw",
+				"align": "start",
+				"autoSize": true,
+				"scale": 1,
+				"isChatAI": false
+			},
+			"parentId": "page:HLiKfm9idJW76swUknOeX",
+			"index": "a2",
+			"typeName": "shape"
+		}
+	],
+	"rootShapeIds": ["shape:lMzsKItV-8NyBRZoXUlfR", "shape:BmGE79OmGZw-sEdyDeC1t"],
+	"schema": {
+		"schemaVersion": 1,
+		"storeVersion": 3,
+		"recordVersions": {
+			"asset": {
+				"version": 0,
+				"subTypeKey": "type",
+				"subTypeVersions": {
+					"image": 2,
+					"video": 2,
+					"bookmark": 0
+				}
+			},
+			"camera": {
+				"version": 0
+			},
+			"document": {
+				"version": 0
+			},
+			"instance": {
+				"version": 11
+			},
+			"instance_page_state": {
+				"version": 1
+			},
+			"page": {
+				"version": 0
+			},
+			"shape": {
+				"version": 1,
+				"subTypeKey": "type",
+				"subTypeVersions": {
+					"arrow": 1,
+					"bookmark": 1,
+					"draw": 1,
+					"embed": 1,
+					"frame": 0,
+					"geo": 6,
+					"sdimage": 0,
+					"group": 0,
+					"image": 2,
+					"line": 0,
+					"note": 3,
+					"text": 1,
+					"video": 1
+				}
+			},
+			"user_document": {
+				"version": 4
+			},
+			"instance_presence": {
+				"version": 1
+			},
+			"pointer": {
+				"version": 0
+			}
+		}
+	},
+	"assets": []
+}

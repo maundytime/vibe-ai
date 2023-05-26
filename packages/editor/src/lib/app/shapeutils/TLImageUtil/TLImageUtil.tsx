@@ -113,6 +113,15 @@ export class TLImageUtil extends TLBoxUtil<TLImageShape> {
 			}
 		}, [prefersReducedMotion, asset?.props])
 
+		const fakeContainerEl = document.createElement('div')
+		fakeContainerEl.className = `tl-container tl-theme__${this.app.isDarkMode ? 'dark' : 'light'}`
+		document.body.appendChild(fakeContainerEl)
+		const containerStyle1 = getComputedStyle(fakeContainerEl)
+		const backgroundColor = asset?.props.src
+			? undefined
+			: containerStyle1.getPropertyValue(`--palette-grey-semi`)
+		document.body.removeChild(fakeContainerEl)
+
 		return (
 			<>
 				{asset?.props.src && showCropPreview && (
@@ -129,7 +138,7 @@ export class TLImageUtil extends TLBoxUtil<TLImageShape> {
 						/>
 					</div>
 				)}
-				<HTMLContainer id={shape.id} style={{ overflow: 'hidden' }}>
+				<HTMLContainer id={shape.id} style={{ overflow: 'hidden', backgroundColor }}>
 					<div className="tl-image-container" style={containerStyle}>
 						{asset?.props.src ? (
 							<div

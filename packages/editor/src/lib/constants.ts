@@ -30,6 +30,13 @@ export const MIN_ZOOM = 0.1
 export const MAX_ZOOM = 8
 
 /** @internal */
+export const SD_MAX = 1024
+/** @internal */
+export const SD_MIN = 256
+/** @internal */
+export const SD_MAX_RATIO = SD_MAX / SD_MIN
+
+/** @internal */
 export const FOLLOW_CHASE_PROPORTION = 0.5
 /** @internal */
 export const FOLLOW_CHASE_PAN_SNAP = 0.1

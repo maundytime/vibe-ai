@@ -472,6 +472,22 @@ export const rootShapeTypeMigrations: Migrations;
 export const scribbleTypeValidator: T.Validator<TLScribble>;
 
 // @public (undocumented)
+export type SDImageShape = TLBaseShape<'sdimage', SDImageShapeProps>;
+
+// @public (undocumented)
+export type SDImageShapeProps = {
+    w: number;
+    h: number;
+    text: string;
+};
+
+// @public (undocumented)
+export const sdimageShapeTypeMigrations: Migrations;
+
+// @public (undocumented)
+export const sdimageShapeTypeValidator: T.Validator<SDImageShape>;
+
+// @public (undocumented)
 export type SetValue<T extends Set<any>> = T extends Set<infer U> ? U : never;
 
 // @internal (undocumented)
@@ -883,6 +899,7 @@ export type TLGeoShapeProps = {
     h: number;
     text: string;
     growY: number;
+    isChatAI: boolean;
 };
 
 // @public (undocumented)
@@ -1279,6 +1296,7 @@ export type TLTextShapeProps = {
     text: string;
     scale: number;
     autoSize: boolean;
+    isChatAI: boolean;
 };
 
 // @public (undocumented)

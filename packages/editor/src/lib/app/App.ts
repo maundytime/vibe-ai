@@ -96,6 +96,9 @@ import {
 	MAX_ZOOM,
 	MINOR_NUDGE_FACTOR,
 	MIN_ZOOM,
+	SD_MAX,
+	SD_MAX_RATIO,
+	SD_MIN,
 	STYLES,
 	SVG_PADDING,
 	ZOOMS,
@@ -176,6 +179,101 @@ export function isShapeWithHandles(shape: TLShape) {
 
 /** @public */
 export class App extends EventEmitter<TLEventMap> {
+	get isDev() {
+		return process.env.NODE_ENV === 'development'
+	}
+
+	get sdURL() {
+		return this.isDev ? 'http://localhost:7860' : 'https://sd.postneko.workers.dev'
+	}
+
+	get sdInterrogateModel() {
+		return this.isDev ? 'deepdanbooru' : 'clip'
+	}
+
+	sdSetPreferSize = (value: { w: number; h: number }) => {
+		this._sdPreferSize.set(value)
+	}
+
+	private _sdPreferSize = atom('sd size', { w: SD_MIN, h: SD_MIN })
+
+	get sdSize() {
+		let { w, h } = this._sdPreferSize.value
+		if (w > h * SD_MAX_RATIO) {
+			w = h * SD_MAX_RATIO
+		} else if (h > w * SD_MAX_RATIO) {
+			h = w * SD_MAX_RATIO
+		}
+		const isLandscape = w > h
+		let max = Math.max(w, h)
+		let min = Math.min(w, h)
+		if (max > SD_MAX) {
+			max = SD_MAX
+			min = (SD_MAX * min) / max
+		} else if (min < SD_MIN) {
+			min = SD_MIN
+			max = (SD_MIN * max) / min
+		}
+		return {
+			sdRequestSize: {
+				w: Math.round(isLandscape ? max : min),
+				h: Math.round(isLandscape ? min : max),
+			},
+			properShapeSize: {
+				w,
+				h,
+			},
+		}
+	}
+
+	get sdcnParameterObject() {
+		let p = {}
+		try {
+			p = { ...p, ...eval(`(${this._sdcnParameter.value})`) }
+		} catch (e) {
+			console.error(e)
+		}
+		return p
+	}
+
+	get sdcnParameter() {
+		return this._sdcnParameter.value
+	}
+
+	set sdcnParameter(value: string) {
+		this._sdcnParameter.set(value)
+	}
+
+	private _sdcnParameter = atom('sd parameter', '{}')
+
+	get sdParameterObject() {
+		let p = {
+			negative_prompt: 'EasyNegative',
+			steps: 20,
+			cfg_scale: 7,
+			sampler_name: 'DPM++ 2M Karras',
+		}
+		try {
+			p = { ...p, ...eval(`(${this._sdParameter.value})`) }
+		} catch (e) {
+			console.error(e)
+		}
+		return p
+	}
+
+	get sdParameter() {
+		return this._sdParameter.value
+	}
+
+	set sdParameter(value: string) {
+		this._sdParameter.set(value)
+	}
+
+	private _sdParameter = atom(
+		'sd parameter',
+		this.isDev ? '{ seed: -1, steps: 10 }' : '{ seed: -1, steps: 20 }'
+	)
+
 	constructor({ config, store, getContainer }: AppOptions) {
 		super()
 

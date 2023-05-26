@@ -13,6 +13,7 @@ import { PointerRecordType } from './records/TLPointer'
 import { TLShape, TLUnknownShape, rootShapeTypeMigrations } from './records/TLShape'
 import { UserDocumentRecordType } from './records/TLUserDocument'
 import { storeMigrations } from './schema'
+import { sdimageShapeTypeMigrations, sdimageShapeTypeValidator } from './shapes/SDImageShape'
 import { arrowShapeTypeMigrations, arrowShapeTypeValidator } from './shapes/TLArrowShape'
 import { bookmarkShapeTypeMigrations, bookmarkShapeTypeValidator } from './shapes/TLBookmarkShape'
 import { drawShapeTypeMigrations, drawShapeTypeValidator } from './shapes/TLDrawShape'
@@ -39,6 +40,7 @@ const DEFAULT_SHAPES: { [K in TLShape['type']]: DefaultShapeInfo<Extract<TLShape
 		embed: { migrations: embedShapeTypeMigrations, validator: embedShapeTypeValidator },
 		frame: { migrations: frameShapeTypeMigrations, validator: frameShapeTypeValidator },
 		geo: { migrations: geoShapeTypeMigrations, validator: geoShapeTypeValidator },
+		sdimage: { migrations: sdimageShapeTypeMigrations, validator: sdimageShapeTypeValidator },
 		group: { migrations: groupShapeTypeMigrations, validator: groupShapeTypeValidator },
 		image: { migrations: imageShapeTypeMigrations, validator: imageShapeTypeValidator },
 		line: { migrations: lineShapeTypeMigrations, validator: lineShapeTypeValidator },
