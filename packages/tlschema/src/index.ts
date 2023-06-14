@@ -120,6 +120,12 @@ export {
 export { lineShapeMigrations, lineShapeProps, type TLLineShape } from './shapes/TLLineShape'
 export { noteShapeMigrations, noteShapeProps, type TLNoteShape } from './shapes/TLNoteShape'
 export {
+	sdimageShapeMigrations,
+	sdimageShapeProps,
+	type TLSdimageShape,
+	type TLSdimageShapeProps,
+} from './shapes/TLSdimageShape'
+export {
 	textShapeMigrations,
 	textShapeProps,
 	type TLTextShape,

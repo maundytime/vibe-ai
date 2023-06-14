@@ -570,6 +570,12 @@ export type SchemaShapeInfo = {
 // @internal (undocumented)
 export const scribbleValidator: T.Validator<TLScribble>;
 
+// @internal (undocumented)
+export const sdimageShapeMigrations: Migrations;
+
+// @internal (undocumented)
+export const sdimageShapeProps: ShapeProps<TLSdimageShape>;
+
 // @public (undocumented)
 export const shapeIdValidator: T.Validator<TLShapeId>;
 
@@ -1086,6 +1092,16 @@ export type TLScribble = {
     delay: number;
 };
 
+// @public (undocumented)
+export type TLSdimageShape = TLBaseShape<'sdimage', TLSdimageShapeProps>;
+
+// @public (undocumented)
+export type TLSdimageShapeProps = {
+    w: number;
+    h: number;
+    text: string;
+};
+
 // @public
 export type TLShape = TLDefaultShape | TLUnknownShape;
 
@@ -1189,6 +1205,7 @@ export type TLTextShapeProps = {
     text: string;
     scale: number;
     autoSize: boolean;
+    isChatAI: boolean;
 };
 
 // @public

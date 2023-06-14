@@ -18,4 +18,10 @@ export default defineConfig({
 	define: {
 		'process.env.TLDRAW_ENV': JSON.stringify(process.env.VERCEL_ENV ?? 'development'),
 	},
+	resolve: {
+		alias: {
+			'@tldraw/tldraw/editor.css': path.resolve(__dirname, '../../packages/editor/editor.css'),
+			'@tldraw/tldraw/ui.css': path.resolve(__dirname, '../../packages/ui/ui.css'),
+		},
+	},
 })

@@ -4,7 +4,7 @@ import '@tldraw/tldraw/ui.css'
 import { useYjsStore } from './useYjsStore'
 
 const HOST_URL =
-	process.env.NODE_ENV === 'development' ? 'ws://localhost:1234' : 'wss://demos.yjs.dev'
+	process.env.NODE_ENV === 'development' ? 'ws://localhost:1236' : 'wss://demos.yjs.dev'
 
 export default function YjsExample() {
 	const store = useYjsStore({

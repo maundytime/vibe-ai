@@ -34,6 +34,7 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
 			align: 'middle',
 			autoSize: true,
 			scale: 1,
+			isChatAI: false,
 		}
 	}
 

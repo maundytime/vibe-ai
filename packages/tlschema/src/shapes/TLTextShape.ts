@@ -16,6 +16,7 @@ export type TLTextShapeProps = {
 	text: string
 	scale: number
 	autoSize: boolean
+	isChatAI: boolean
 }
 
 /** @public */
@@ -31,6 +32,7 @@ export const textShapeProps: ShapeProps<TLTextShape> = {
 	text: T.string,
 	scale: T.nonZeroNumber,
 	autoSize: T.boolean,
+	isChatAI: T.boolean,
 }
 
 const Versions = {

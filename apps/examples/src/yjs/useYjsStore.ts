@@ -23,7 +23,7 @@ const doc = new Y.Doc({ gc: true })
 export function useYjsStore({
 	roomId = 'example',
 	version = 1,
-	hostUrl = process.env.NODE_ENV === 'development' ? 'ws://localhost:1234' : 'wss://demos.yjs.dev',
+	hostUrl = process.env.NODE_ENV === 'development' ? 'ws://localhost:1236' : 'wss://demos.yjs.dev',
 }: Partial<{ hostUrl: string; roomId: string; version: number }>) {
 	const [storeWithStatus, setStoreWithStatus] = useState<TLStoreWithStatus>({ status: 'loading' })
 

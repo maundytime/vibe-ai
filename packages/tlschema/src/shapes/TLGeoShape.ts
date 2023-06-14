@@ -26,6 +26,7 @@ export type TLGeoShapeProps = {
 	h: number
 	text: string
 	growY: number
+	isChatAI: boolean
 }
 
 /** @public */
@@ -47,6 +48,7 @@ export const geoShapeProps: ShapeProps<TLGeoShape> = {
 	h: T.nonZeroNumber,
 	growY: T.positiveNumber,
 	text: T.string,
+	isChatAI: T.boolean,
 }
 
 const Versions = {

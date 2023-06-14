@@ -61,6 +61,7 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 			verticalAlign: 'middle',
 			growY: 0,
 			url: '',
+			isChatAI: false,
 		}
 	}
 

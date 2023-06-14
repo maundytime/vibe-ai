@@ -1,6 +1,6 @@
 {
 	"extends": "../../config/tsconfig.base.json",
-	"include": ["src", "e2e", "./vite.config.ts"],
+	"include": ["src", "e2e", "./vite.config.ts", "src/vibe/tips.json"],
 	"exclude": ["node_modules", "dist", "**/*.css", ".tsbuild*", "./scripts/legacy-translations"],
 	"compilerOptions": {
 		"outDir": "./.tsbuild"

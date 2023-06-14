@@ -273,3 +273,10 @@ export const BLACKLISTED_PROPS = new Set([
 	'url',
 	'growY',
 ])
+
+/** @internal */
+export const SD_MAX = 1024
+/** @internal */
+export const SD_MIN = 256
+/** @internal */
+export const SD_MAX_RATIO = SD_MAX / SD_MIN

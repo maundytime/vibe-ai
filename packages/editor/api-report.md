@@ -71,6 +71,8 @@ import { TLPageId } from '@tldraw/tlschema';
 import { TLParentId } from '@tldraw/tlschema';
 import { TLRecord } from '@tldraw/tlschema';
 import { TLScribble } from '@tldraw/tlschema';
+import { TLSdimageShape } from '@tldraw/tlschema';
+import { TLSdimageShapeProps } from '@tldraw/tlschema';
 import { TLShape } from '@tldraw/tlschema';
 import { TLShapeId } from '@tldraw/tlschema';
 import { TLShapePartial } from '@tldraw/tlschema';
@@ -122,11 +124,15 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
     // (undocumented)
     defaultProps(): TLArrowShape['props'];
     // (undocumented)
+    findBindingTree(shape: TLShape, containFirst?: boolean): TLShape[];
+    // (undocumented)
     getArrowInfo(shape: TLArrowShape): ArrowInfo | undefined;
     // (undocumented)
     getBounds(shape: TLArrowShape): Box2d;
     // (undocumented)
     getCenter(shape: TLArrowShape): Vec2d;
+    // (undocumented)
+    getCroppedAsset: (imageShape: TLImageShape) => null | string;
     // (undocumented)
     getEditingBounds: (shape: TLArrowShape) => Box2d;
     // (undocumented)
@@ -156,13 +162,21 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
     // (undocumented)
     get labelBoundsCache(): ComputedCache<Box2d | null, TLArrowShape>;
     // (undocumented)
+    onAnyToImage: (arrowShape: TLArrowShape, sdimageShape: TLSdimageShape) => Promise<void>;
+    // (undocumented)
     onDoubleClickHandle: (shape: TLArrowShape, handle: TLHandle) => TLShapePartial<TLArrowShape> | void;
+    // (undocumented)
+    onDraggingExit: (arrowShape: TLArrowShape) => void;
     // (undocumented)
     onEditEnd: TLOnEditEndHandler<TLArrowShape>;
     // (undocumented)
     onHandleChange: TLOnHandleChangeHandler<TLArrowShape>;
     // (undocumented)
+    onImageToText: (arrowShape: TLArrowShape, startImageShape: TLImageShape, endEmptyGeoShape?: TLGeoShape) => void;
+    // (undocumented)
     onResize: TLOnResizeHandler<TLArrowShape>;
+    // (undocumented)
+    onTextToText: (arrowShape: TLArrowShape, startTextKindShape: TLGeoShape | TLTextShape, endEmptyGeoShape?: TLGeoShape) => void;
     // (undocumented)
     onTranslateStart: TLOnTranslateStartHandler<TLArrowShape>;
     // (undocumented)
@@ -558,6 +572,8 @@ export class Editor extends EventEmitter<TLEventMap> {
     get isCoarsePointer(): boolean;
     set isCoarsePointer(v: boolean);
     get isDarkMode(): boolean;
+    // (undocumented)
+    get isDev(): boolean;
     get isFocused(): boolean;
     get isFocusMode(): boolean;
     get isGridMode(): boolean;
@@ -641,6 +657,41 @@ export class Editor extends EventEmitter<TLEventMap> {
         z: number;
     };
     get scribble(): null | TLScribble;
+    // (undocumented)
+    get sdcnParameter(): string;
+    set sdcnParameter(value: string);
+    // (undocumented)
+    get sdcnParameterObject(): {};
+    // (undocumented)
+    get sdInterrogateModel(): "clip" | "deepdanbooru";
+    // (undocumented)
+    get sdParameter(): string;
+    set sdParameter(value: string);
+    // (undocumented)
+    get sdParameterObject(): {
+        negative_prompt: string;
+        steps: number;
+        cfg_scale: number;
+        sampler_name: string;
+    };
+    // (undocumented)
+    sdSetPreferSize: (value: {
+        w: number;
+        h: number;
+    }) => void;
+    // (undocumented)
+    get sdSize(): {
+        sdRequestSize: {
+            w: number;
+            h: number;
+        };
+        properShapeSize: {
+            w: number;
+            h: number;
+        };
+    };
+    // (undocumented)
+    get sdURL(): "http://localhost:7860" | "https://sd.postneko.workers.dev";
     select(...ids: TLShapeId[]): this;
     selectAll(): this;
     get selectedIds(): TLShapeId[];
@@ -874,6 +925,7 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
             w: number;
             h: number;
             text: string;
+            isChatAI: boolean;
         };
         type: "geo";
         x: number;
@@ -903,6 +955,7 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
             w: number;
             h: number;
             text: string;
+            isChatAI: boolean;
         };
         type: "geo";
         x: number;
@@ -1817,6 +1870,35 @@ export const runtime: {
     hardReset: () => void;
 };
 
+// @public (undocumented)
+export const SdimageShape: TLShapeInfo<TLSdimageShape>;
+
+// @public (undocumented)
+export class SdimageShapeUtil extends BaseBoxShapeUtil<TLSdimageShape> {
+    // (undocumented)
+    canBind: () => boolean;
+    // (undocumented)
+    canEdit: () => boolean;
+    // (undocumented)
+    canResize: (_shape: TLSdimageShape) => boolean;
+    // (undocumented)
+    defaultProps(): TLSdimageShape['props'];
+    // (undocumented)
+    getSize: (shape: TLSdimageShape) => TLSdimageShapeProps;
+    // (undocumented)
+    indicator(shape: TLSdimageShape): JSX.Element;
+    // (undocumented)
+    isAspectRatioLocked: (_shape: TLSdimageShape) => boolean;
+    // (undocumented)
+    onEditEnd?: TLOnEditEndHandler<TLSdimageShape> | undefined;
+    // (undocumented)
+    onResize: TLOnResizeHandler<any>;
+    // (undocumented)
+    render(shape: TLSdimageShape): JSX.Element;
+    // (undocumented)
+    static type: "sdimage";
+}
+
 // @internal (undocumented)
 export function setDefaultEditorAssetUrls(assetUrls: TLEditorAssetUrls): void;
 
@@ -2064,6 +2146,7 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
             text: string;
             scale: number;
             autoSize: boolean;
+            isChatAI: boolean;
         };
         type: "text";
         rotation: number;

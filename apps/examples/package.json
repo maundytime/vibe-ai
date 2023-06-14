@@ -1,33 +1,9 @@
 {
-	"name": "examples.tldraw.com",
-	"description": "A tiny little drawing app (development).",
-	"version": "2.0.0-alpha.11",
+	"name": "vibe-ai-examples",
+	"version": "0.0.0",
 	"private": true,
-	"packageManager": "yarn@3.5.0",
-	"author": {
-		"name": "tldraw GB Ltd.",
-		"email": "hello@tldraw.com"
-	},
-	"homepage": "https://tldraw.dev",
-	"license": "Apache-2.0",
-	"repository": {
-		"type": "git",
-		"url": "https://github.com/tldraw/tldraw"
-	},
-	"bugs": {
-		"url": "https://github.com/tldraw/tldraw/issues"
-	},
-	"keywords": [
-		"tldraw",
-		"drawing",
-		"app",
-		"development",
-		"whiteboard",
-		"canvas",
-		"infinite"
-	],
 	"scripts": {
-		"dev": "concurrently \"vite\" \"HOST=localhost PORT=1234 npx y-websocket\" --kill-others",
+		"dev": "concurrently \"vite\" \"HOST=localhost PORT=1236 npx y-websocket\" --kill-others",
 		"build": "vite build",
 		"lint": "yarn run -T tsx ../../scripts/lint.ts",
 		"e2e": "playwright test -c ./e2e/playwright.config.ts",
@@ -46,6 +22,7 @@
 		"react-router-dom": "^6.9.0",
 		"signia": "0.1.4",
 		"signia-react": "0.1.4",
+		"use-whisper": "^0.0.1",
 		"vite": "^4.3.4",
 		"y-websocket": "^1.5.0",
 		"yjs": "^13.6.2"

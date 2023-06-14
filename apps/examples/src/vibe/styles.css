@@ -1,0 +1,31 @@
+.custom-input {
+	pointer-events: all;
+	padding: 4px 12px;
+	background: white;
+	border: 1px solid black;
+	border-radius: 4px;
+	margin-top: 4px;
+	margin-left: 4px;
+	height: 24px;
+}
+
+.custom-button {
+	margin-top: 4px;
+	margin-left: 4px;
+	pointer-events: all;
+	padding: 4px 12px;
+	background: white;
+	border: 1px solid black;
+	border-radius: 64px;
+	height: 24px;
+}
+
+.custom-button[data-isactive='false'] {
+	background-color: white;
+	color: black;
+}
+
+.custom-button[data-isactive='true'] {
+	background-color: black;
+	color: white;
+}

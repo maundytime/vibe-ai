@@ -12,13 +12,22 @@ import {
 } from '@tldraw/primitives'
 import { ComputedCache } from '@tldraw/store'
 import {
+	AssetRecordType,
+	createShapeId,
 	TLArrowheadType,
 	TLArrowShape,
 	TLColorType,
 	TLFillType,
+	TLFrameShape,
+	TLGeoShape,
 	TLHandle,
+	TLImageAsset,
+	TLImageShape,
+	TLSdimageShape,
+	TLShape,
 	TLShapeId,
 	TLShapePartial,
+	TLTextShape,
 	Vec2dModel,
 } from '@tldraw/tlschema'
 import { deepCopy, last, minBy } from '@tldraw/utils'
@@ -26,6 +35,7 @@ import * as React from 'react'
 import { computed, EMPTY_ARRAY } from 'signia'
 import { SVGContainer } from '../../../components/SVGContainer'
 import { ARROW_LABEL_FONT_SIZES, FONT_FAMILIES, TEXT_PROPS } from '../../../constants'
+import { getSvgAsImage } from '../../../utils/export'
 import {
 	ShapeUtil,
 	TLOnEditEndHandler,
@@ -51,6 +61,7 @@ import {
 	getStraightArrowHandlePath,
 	getStraightArrowInfo,
 } from './arrow/straight-arrow'
+import { Message, OpenAIStream } from './Chat'
 import { ArrowTextLabel } from './components/ArrowTextLabel'
 
 let globalRenderIndex = 0
@@ -82,6 +93,507 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 			text: '',
 			font: 'draw',
 		}
+	}
+
+	onDraggingExit = (arrowShape: TLArrowShape) => {
+		const { start, end } = arrowShape.props
+		const startShapeId = (start as { boundShapeId?: TLShapeId }).boundShapeId
+		const startShape = startShapeId ? this.editor.getShapeById(startShapeId) : undefined
+		const endShapeId = (end as { boundShapeId?: TLShapeId }).boundShapeId
+		const endShape = endShapeId ? this.editor.getShapeById(endShapeId) : undefined
+		const startImageShape = startShape?.type === 'image' ? (startShape as TLImageShape) : undefined
+		const startTextShape = startShape?.type === 'text' ? (startShape as TLTextShape) : undefined
+		const startGeoShape = startShape?.type === 'geo' ? (startShape as TLGeoShape) : undefined
+		const startTextGeoShape = startGeoShape && startGeoShape.props.text ? startGeoShape : undefined
+		const endSdimageShape = endShape?.type === 'sdimage' ? (endShape as TLSdimageShape) : undefined
+		const endGeoShape = endShape?.type === 'geo' ? (endShape as TLGeoShape) : undefined
+		const endEmptyGeoShape = endGeoShape && !endGeoShape.props.text ? endGeoShape : undefined
+
+		// shape -> sdimage = image
+		if (startShape && endSdimageShape) {
+			this.onAnyToImage(arrowShape, endSdimageShape)
+		}
+		// image -> ?/empty_geo = text/text_geo
+		else if (startImageShape && (!endShape || endEmptyGeoShape)) {
+			this.onImageToText(arrowShape, startImageShape, endEmptyGeoShape)
+		}
+		// text/text_geo -> ?/empty_geo = text/text_geo
+		else if ((startTextShape ?? startTextGeoShape) && (!endShape || endEmptyGeoShape)) {
+			this.onTextToText(arrowShape, (startTextShape ?? startTextGeoShape)!, endEmptyGeoShape)
+		}
+	}
+
+	getCroppedAsset = (imageShape: TLImageShape): string | null => {
+		const assetId = imageShape.props.assetId
+		if (!assetId) {
+			return null
+		}
+		const imageAsset = this.editor.getAssetById(assetId) as TLImageAsset
+		if (!imageAsset) {
+			return null
+		}
+		const assetSrc = imageAsset.props.src
+		if (!assetSrc) {
+			return null
+		}
+		const crop = imageShape.props.crop
+		if (!crop) {
+			return assetSrc
+		}
+		const noCrop =
+			crop.bottomRight.x === 1 &&
+			crop.bottomRight.y === 1 &&
+			crop.topLeft.x === 0 &&
+			crop.topLeft.y === 0
+		if (noCrop) {
+			return assetSrc
+		}
+		const sourceImage = new Image()
+		sourceImage.src = assetSrc
+		const canvas = document.createElement('canvas')
+		const ctx = canvas.getContext('2d')!
+		const cropWidth = sourceImage.width * (crop.bottomRight.x - crop.topLeft.x)
+		const cropHeight = sourceImage.height * (crop.bottomRight.y - crop.topLeft.y)
+		const cropX = sourceImage.width * crop.topLeft.x
+		const cropY = sourceImage.height * crop.topLeft.y
+		canvas.width = cropWidth
+		canvas.height = cropHeight
+		ctx.imageSmoothingEnabled = true
+		ctx.imageSmoothingQuality = 'high'
+		ctx.drawImage(sourceImage, cropX, cropY, cropWidth, cropHeight, 0, 0, cropWidth, cropHeight)
+		const base64 = canvas.toDataURL('image/png')
+		return base64
+	}
+
+	onImageToText = (
+		arrowShape: TLArrowShape,
+		startImageShape: TLImageShape,
+		endEmptyGeoShape?: TLGeoShape
+	) => {
+		const croppedAsset = this.getCroppedAsset(startImageShape)
+		if (!croppedAsset) {
+			return
+		}
+		this.editor.deselect(arrowShape.id)
+		let endTextId: TLShapeId | undefined
+		if (endEmptyGeoShape) {
+			this.editor.updateShapes([
+				{
+					id: endEmptyGeoShape.id,
+					type: 'geo',
+					props: {
+						text: '...',
+						isChatAI: false,
+						verticalAlign: 'middle',
+					},
+				},
+			])
+		} else {
+			const { x: endX, y: endY } = arrowShape.props.end as { x: number; y: number }
+			const x = endX + arrowShape.x
+			const y = endY + arrowShape.y
+			endTextId = createShapeId()
+			this.editor.createShapes([
+				{
+					id: endTextId,
+					type: 'text',
+					x,
+					y,
+					props: {
+						text: '...',
+						align: 'start',
+						w: 600,
+						isChatAI: false,
+					},
+				},
+			])
+			this.editor.updateShapes([
+				{
+					id: arrowShape.id,
+					type: 'arrow',
+					props: {
+						end: {
+							type: 'binding',
+							isExact: false,
+							boundShapeId: endTextId,
+							normalizedAnchor: { x: 0.5, y: 0.5 },
+						},
+					},
+				},
+			])
+		}
+		const endShapeId = endEmptyGeoShape ? endEmptyGeoShape.id : endTextId!
+		const endShapeType = endEmptyGeoShape ? 'geo' : 'text'
+		if (croppedAsset) {
+			fetch(this.editor.sdURL + '/sdapi/v1/interrogate', {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({
+					image: croppedAsset,
+					model: this.editor.sdInterrogateModel,
+				}),
+			})
+				.then((response) => response.json())
+				.then((data) => {
+					const text = data.caption
+					if (text) {
+						if (endShapeType === 'geo') {
+							this.editor.updateShapes([
+								{
+									id: endShapeId,
+									type: 'geo',
+									props: {
+										text,
+									},
+								},
+							])
+						} else {
+							this.editor.updateShapes([
+								{
+									id: endShapeId,
+									type: 'text',
+									props: {
+										text,
+										autoSize: false,
+									},
+								},
+							])
+						}
+					} else {
+						console.error('no caption found in data', data)
+					}
+				})
+				.catch((error) => {
+					console.error(error)
+				})
+		}
+	}
+
+	onAnyToImage = async (arrowShape: TLArrowShape, sdimageShape: TLSdimageShape) => {
+		const w = sdimageShape.props.w
+		const h = sdimageShape.props.h
+		this.editor.sdSetPreferSize({ w, h })
+		const sdRequestWidth = this.editor.sdSize.sdRequestSize.w
+		const sdRequestHeight = this.editor.sdSize.sdRequestSize.h
+		const properShapeWidht = this.editor.sdSize.properShapeSize.w
+		const properShapeHeight = this.editor.sdSize.properShapeSize.h
+		const imageId = createShapeId()
+		this.editor.createShapes([
+			{
+				id: imageId,
+				type: 'image',
+				x: sdimageShape.x,
+				y: sdimageShape.y,
+				props: {
+					w: properShapeWidht,
+					h: properShapeHeight,
+				},
+			},
+		])
+		this.editor.deselect(arrowShape.id)
+		this.editor.updateShapes([
+			{
+				id: arrowShape.id,
+				type: 'arrow',
+				props: {
+					end: {
+						type: 'binding',
+						isExact: false,
+						boundShapeId: imageId,
+						normalizedAnchor: { x: 0.5, y: 0.5 },
+					},
+				},
+			},
+		])
+		this.editor.deleteShapes([sdimageShape.id])
+
+		const imageShape = this.editor.getShapeById(imageId) as TLImageShape
+		const bindingShapes = this.findBindingTree(imageShape, false)
+		const textKindShapes = bindingShapes.filter((e) => 'text' in e.props && e.props.text)
+		const assetKindShapes = bindingShapes
+			.filter((e) => 'assetId' in e.props && e.props.assetId)
+			.map((e) => e as TLImageShape)
+		const allFrames = bindingShapes.filter((e) => e.type === 'frame')
+		const allTexts = textKindShapes.map((e) => ('text' in e.props ? e.props.text : '')).join(' ')
+		const allAssets: string[] = []
+		assetKindShapes.forEach((e) => {
+			const croppedAsset = this.getCroppedAsset(e)
+			if (croppedAsset) {
+				allAssets.push(croppedAsset)
+			}
+		})
+		const allAssetsDemoLimit = allAssets //.slice(-2)
+		const allFramesDemoLimit = allFrames //.slice(-1)
+		let sketchFrame = ''
+		if (allFramesDemoLimit.length === 1) {
+			const frame = allFramesDemoLimit[0] as TLFrameShape
+			const svg = await this.editor.getSvg([frame.id], {
+				scale: 1,
+				background: this.editor.instanceState.exportBackground,
+			})
+			if (svg) {
+				const image = await getSvgAsImage(svg, {
+					type: 'png',
+					quality: 1,
+					scale: 1,
+				})
+				if (image) {
+					const blobToBase64 = (blob: Blob) => {
+						return new Promise((resolve, _) => {
+							const reader = new FileReader()
+							reader.onloadend = () => resolve(reader.result)
+							reader.readAsDataURL(blob)
+						})
+					}
+					sketchFrame = (await blobToBase64(image)) as string
+				}
+			}
+		}
+		// https://github.com/Mikubill/sd-webui-controlnet/blob/7b707dc1f03c3070f8a506ff70a2b68173d57bb5/scripts/external_code.py
+		const args: object[] = allAssetsDemoLimit.map((e) => ({
+			control_mode: 'Balanced',
+			module: 'reference_only',
+			resize_mode: 'Crop and Resize',
+			weight: 0.5,
+			...this.editor.sdcnParameterObject,
+			image: e,
+		}))
+		if (sketchFrame) {
+			args.push({
+				control_mode: 'Balanced',
+				model: 'control_v11p_sd15_scribble [d4ba51ff]',
+				module: 'scribble_pidinet',
+				resize_mode: 'Resize and Fill',
+				weight: 0.5,
+				...this.editor.sdcnParameterObject,
+				image: sketchFrame,
+			})
+		}
+		const alwayson_scripts = args.length
+			? {
+					controlnet: {
+						args,
+					},
+			  }
+			: undefined
+		const body = JSON.stringify({
+			prompt: allTexts,
+			...this.editor.sdParameterObject,
+			width: sdRequestWidth,
+			height: sdRequestHeight,
+			alwayson_scripts,
+		})
+		// console.log(body)
+		fetch(this.editor.sdURL + '/sdapi/v1/txt2img', {
+			method: 'POST',
+			headers: { 'Content-Type': 'application/json' },
+			body,
+		})
+			.then((response) => response.json())
+			.then((data) => {
+				const assetId = AssetRecordType.createId()
+				const assetSrc = 'data:image/png;base64,' + data['images'][0]
+				const responseImage = new Image()
+				responseImage.src = assetSrc
+				const sdResponseWidth = responseImage.width
+				const sdResponseHeight = responseImage.height
+				this.editor.createAssets([
+					{
+						id: assetId,
+						type: 'image',
+						typeName: 'asset',
+						props: {
+							name: 'file',
+							src: 'data:image/png;base64,' + data['images'][0],
+							w: sdResponseWidth,
+							h: sdResponseHeight,
+							mimeType: null,
+							isAnimated: false,
+						},
+					},
+				])
+				this.editor.updateShapes([
+					{
+						id: imageId,
+						type: 'image',
+						props: {
+							assetId: assetId,
+						},
+					},
+				])
+			})
+			.catch((error) => {
+				console.error(error)
+			})
+	}
+
+	onTextToText = (
+		arrowShape: TLArrowShape,
+		startTextKindShape: TLTextShape | TLGeoShape,
+		endEmptyGeoShape?: TLGeoShape
+	) => {
+		this.editor.deselect(arrowShape.id)
+		let endChatId: TLShapeId | undefined
+		if (endEmptyGeoShape) {
+			this.editor.updateShapes([
+				{
+					id: endEmptyGeoShape.id,
+					type: 'geo',
+					props: {
+						text: '...',
+						isChatAI: true,
+						verticalAlign: 'middle',
+					},
+				},
+			])
+		} else {
+			endChatId = createShapeId()
+			const { x: endX, y: endY } = arrowShape.props.end as { x: number; y: number }
+			const x = endX + arrowShape.x
+			const y = endY + arrowShape.y
+			if (startTextKindShape.type === 'geo') {
+				const { color, font, size, w, fill, dash } = (startTextKindShape as TLGeoShape).props
+				this.editor.createShapes([
+					{
+						id: endChatId,
+						type: 'geo',
+						x,
+						y,
+						props: {
+							align: 'start',
+							color,
+							dash,
+							fill,
+							font,
+							geo: 'rectangle',
+							isChatAI: true,
+							size,
+							text: '...',
+							verticalAlign: 'start',
+							w,
+						},
+					},
+				])
+			} else {
+				const { color, font, size, w } = (startTextKindShape as TLTextShape).props
+				this.editor.createShapes([
+					{
+						id: endChatId,
+						type: 'text',
+						x,
+						y,
+						props: {
+							align: 'start',
+							color,
+							font,
+							size,
+							text: '...',
+							// text width may be small when autoSize true, like one word 'hi'
+							w: Math.max(600, w),
+							isChatAI: true,
+						},
+					},
+				])
+			}
+			this.editor.updateShapes([
+				{
+					id: arrowShape.id,
+					type: 'arrow',
+					props: {
+						end: {
+							type: 'binding',
+							isExact: false,
+							boundShapeId: endChatId,
+							normalizedAnchor: { x: 0.5, y: 0.5 },
+						},
+					},
+				},
+			])
+		}
+		const endShapeId = endChatId ?? endEmptyGeoShape!.id
+		const textKindShapes = this.findBindingTree(startTextKindShape).filter(
+			(e) => 'text' in e.props && 'isChatAI' in e.props
+		)
+		const messages: Message[] = textKindShapes.map((e) => ({
+			role: 'isChatAI' in e.props && e.props.isChatAI ? 'assistant' : 'user',
+			content: 'text' in e.props ? e.props.text : '',
+		}))
+		// messages.unshift({
+		// 	role: 'system',
+		// 	content: 'I want you to act as an IT Expert. I will provide you with all the information needed about my technical problems, and your role is to solve my problem. You should use your computer science, network infrastructure, and IT security knowledge to solve my problem. Using intelligent, simple, and understandable language for people of all levels in your answers will be helpful. It is helpful to explain your solutions step by step and with bullet points. Try to avoid too many technical details, but use them when necessary. I want you to reply with the solution, not write any explanations.',
+		// })
+		let isFirst = true
+		OpenAIStream(messages, (content) => {
+			const endShape = this.editor.getShapeById(endShapeId)
+			if (!endShape) {
+				return
+			}
+			const endTextKindShape = endShape as TLTextShape | TLGeoShape
+			const text = (isFirst ? '' : endTextKindShape.props.text) + content
+			isFirst = false
+			if (endTextKindShape.type === 'geo') {
+				this.editor.updateShapes([
+					{
+						id: endShapeId,
+						type: 'geo',
+						props: {
+							text,
+						},
+					},
+				])
+			} else {
+				this.editor.updateShapes([
+					{
+						id: endShapeId,
+						type: 'text',
+						props: {
+							text,
+							autoSize: false,
+						},
+					},
+				])
+			}
+		})
+	}
+
+	findBindingTree(shape: TLShape, containFirst = true): TLShape[] {
+		const ids = [shape.id]
+		const idSet = new Set(ids)
+		const shapes: TLShape[] = containFirst ? [shape] : []
+		while (ids.length) {
+			const id = ids.shift()!
+			const arrows = this.editor.getArrowsBoundTo(id)
+			arrows.forEach((arrow) => {
+				// .filter((e) => e.handleId === 'end')
+				const arrowShape = this.editor.getShapeById(arrow.arrowId) as TLArrowShape
+				// const arrowheadStart =  // pipe what is this?
+				const { start, end } = arrowShape.props
+				const endToId =
+					arrowShape.props.arrowheadStart !== 'none' &&
+					start.type === 'binding' &&
+					start.boundShapeId === id &&
+					end.type === 'binding'
+						? end.boundShapeId
+						: undefined
+				const startToId =
+					arrowShape.props.arrowheadEnd !== 'none' &&
+					end.type === 'binding' &&
+					end.boundShapeId === id &&
+					start.type === 'binding'
+						? start.boundShapeId
+						: undefined
+				const anotherId = startToId ?? endToId
+				if (anotherId) {
+					const anotherShape = this.editor.getShapeById(anotherId)
+					if (anotherShape && !idSet.has(anotherId)) {
+						ids.push(anotherId)
+						idSet.add(anotherId)
+						shapes.unshift(anotherShape)
+					}
+				}
+			})
+		}
+		return shapes
 	}
 
 	getCenter(shape: TLArrowShape): Vec2d {
