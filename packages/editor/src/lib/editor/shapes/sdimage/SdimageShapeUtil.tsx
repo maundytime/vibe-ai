@@ -11,7 +11,7 @@ import { resizeBox } from '../shared/resizeBox'
 /** @public */
 export class SdimageShapeUtil extends BaseBoxShapeUtil<TLSdimageShape> {
 	static override type = 'sdimage' as const
-	override isAspectRatioLocked = (_shape: TLSdimageShape) => false
+	override isAspectRatioLocked = (_shape: TLSdimageShape) => true
 	override canResize = (_shape: TLSdimageShape) => true
 	override canBind = () => true
 	override canEdit = () => true
@@ -68,7 +68,8 @@ export class SdimageShapeUtil extends BaseBoxShapeUtil<TLSdimageShape> {
 
 	override onResize: TLOnResizeHandler<any> = (shape, info) => {
 		const w = Math.abs(shape.props.w * info.scaleX).toFixed()
-		const h = Math.abs(shape.props.h * info.scaleY).toFixed()
+		const h = w
+		// const h = Math.abs(shape.props.h * info.scaleY).toFixed()
 		this.editor.updateShapes([
 			{
 				id: shape.id,
@@ -86,7 +87,8 @@ export class SdimageShapeUtil extends BaseBoxShapeUtil<TLSdimageShape> {
 		const matches = shape.props.text.match(/([\d]+)[^\d]+([\d]+)/)
 		if (matches?.length === 3) {
 			const w = parseInt(matches[1])
-			const h = parseInt(matches[2])
+			const h = w
+			// const h = parseInt(matches[2])
 			const text = `${w} x ${h}`
 			return { w, h, text }
 		} else if (single) {

@@ -17,6 +17,7 @@ export interface TLEventMap {
 	frame: [number]
 	'change-history': [{ reason: 'undo' | 'redo' | 'push' } | { reason: 'bail'; markId?: string }]
 	'mark-history': [{ id: string }]
+	'ai-need-text': []
 }
 
 /** @public */

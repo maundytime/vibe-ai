@@ -18,10 +18,10 @@ import {
 	TLArrowShape,
 	TLColorType,
 	TLFillType,
-	TLFrameShape,
 	TLGeoShape,
 	TLHandle,
 	TLImageAsset,
+	TLImageCrop,
 	TLImageShape,
 	TLSdimageShape,
 	TLShape,
@@ -35,7 +35,7 @@ import * as React from 'react'
 import { computed, EMPTY_ARRAY } from 'signia'
 import { SVGContainer } from '../../../components/SVGContainer'
 import { ARROW_LABEL_FONT_SIZES, FONT_FAMILIES, TEXT_PROPS } from '../../../constants'
-import { getSvgAsImage } from '../../../utils/export'
+import { getSvgAsDataUrl } from '../../../utils/export'
 import {
 	ShapeUtil,
 	TLOnEditEndHandler,
@@ -115,7 +115,8 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 		}
 		// image -> ?/empty_geo = text/text_geo
 		else if (startImageShape && (!endShape || endEmptyGeoShape)) {
-			this.onImageToText(arrowShape, startImageShape, endEmptyGeoShape)
+			// dalle mode not able
+			// this.onImageToText(arrowShape, startImageShape, endEmptyGeoShape)
 		}
 		// text/text_geo -> ?/empty_geo = text/text_geo
 		else if ((startTextShape ?? startTextGeoShape) && (!endShape || endEmptyGeoShape)) {
@@ -123,33 +124,12 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 		}
 	}
 
-	getCroppedAsset = (imageShape: TLImageShape): string | null => {
-		const assetId = imageShape.props.assetId
-		if (!assetId) {
-			return null
+	getDataFromBase64 = async (base64: string, _crop?: TLImageCrop | null) => {
+		const crop = _crop ?? {
+			bottomRight: { x: 1, y: 1 },
+			topLeft: { x: 0, y: 0 },
 		}
-		const imageAsset = this.editor.getAssetById(assetId) as TLImageAsset
-		if (!imageAsset) {
-			return null
-		}
-		const assetSrc = imageAsset.props.src
-		if (!assetSrc) {
-			return null
-		}
-		const crop = imageShape.props.crop
-		if (!crop) {
-			return assetSrc
-		}
-		const noCrop =
-			crop.bottomRight.x === 1 &&
-			crop.bottomRight.y === 1 &&
-			crop.topLeft.x === 0 &&
-			crop.topLeft.y === 0
-		if (noCrop) {
-			return assetSrc
-		}
-		const sourceImage = new Image()
-		sourceImage.src = assetSrc
+		const sourceImage = await this.loadImage(base64)
 		const canvas = document.createElement('canvas')
 		const ctx = canvas.getContext('2d')!
 		const cropWidth = sourceImage.width * (crop.bottomRight.x - crop.topLeft.x)
@@ -161,19 +141,70 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 		ctx.imageSmoothingEnabled = true
 		ctx.imageSmoothingQuality = 'high'
 		ctx.drawImage(sourceImage, cropX, cropY, cropWidth, cropHeight, 0, 0, cropWidth, cropHeight)
-		const base64 = canvas.toDataURL('image/png')
-		return base64
+		let hasTransparency = false
+		const imageData = ctx.getImageData(0, 0, cropWidth, cropHeight).data
+		for (let i = 3; i < imageData.length; i += 4) {
+			if (imageData[i] != 255) {
+				hasTransparency = true
+				break
+			}
+		}
+		return { canvas, hasTransparency }
 	}
 
-	onImageToText = (
+	getBlobFromBase64 = async (
+		base64: string,
+		crop?: TLImageCrop | null
+	): Promise<{ blob: Blob; hasTransparency: boolean }> => {
+		const { canvas, hasTransparency } = await this.getDataFromBase64(base64, crop)
+		return new Promise((resolved) => {
+			canvas.toBlob((blob) => {
+				if (blob) {
+					resolved({ blob, hasTransparency })
+				}
+			})
+		})
+	}
+
+	getBase64FromBase64 = async (
+		base64: string,
+		crop?: TLImageCrop | null
+	): Promise<{ base64: string; hasTransparency: boolean }> => {
+		const { canvas, hasTransparency } = await this.getDataFromBase64(base64, crop)
+		return { base64: canvas.toDataURL('image/png'), hasTransparency }
+	}
+
+	getCroppedData = async (imageShape: TLImageShape, type: 'base64' | 'blob') => {
+		const assetId = imageShape.props.assetId
+		if (!assetId) {
+			return null
+		}
+		const imageAsset = this.editor.getAssetById(assetId) as TLImageAsset
+		if (!imageAsset) {
+			return null
+		}
+		const base64 = imageAsset.props.src
+		if (!base64) {
+			return null
+		}
+		const crop = imageShape.props.crop
+		if (type === 'blob') {
+			return await this.getBlobFromBase64(base64, crop)
+		} else {
+			return await this.getBase64FromBase64(base64, crop)
+		}
+	}
+
+	onImageToText = async (
 		arrowShape: TLArrowShape,
 		startImageShape: TLImageShape,
 		endEmptyGeoShape?: TLGeoShape
 	) => {
-		const croppedAsset = this.getCroppedAsset(startImageShape)
-		if (!croppedAsset) {
+		const data = await this.getCroppedData(startImageShape, 'base64')
+		if (!data || !('base64' in data)) {
 			return
 		}
+		const croppedAsset = data.base64
 		this.editor.deselect(arrowShape.id)
 		let endTextId: TLShapeId | undefined
 		if (endEmptyGeoShape) {
@@ -269,130 +300,126 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 		}
 	}
 
+	hasTransparency = async (base64: string) => {
+		const image = await this.loadImage(base64)
+		const canvas = document.createElement('canvas')
+		canvas.width = image.width
+		canvas.height = image.height
+		const ctx = canvas.getContext('2d')!
+		ctx.drawImage(image, 0, 0)
+		const imageData = ctx.getImageData(0, 0, image.width, image.height).data
+		for (let i = 3; i < imageData.length; i += 4) {
+			if (imageData[i] != 255) {
+				return true
+			}
+		}
+		return false
+	}
+
+	loadImage = (base64: string): Promise<HTMLImageElement> => {
+		return new Promise((resolved) => {
+			const i = new Image()
+			i.onload = function () {
+				resolved(i)
+			}
+			i.src = base64
+		})
+	}
+
 	onAnyToImage = async (arrowShape: TLArrowShape, sdimageShape: TLSdimageShape) => {
 		const w = sdimageShape.props.w
 		const h = sdimageShape.props.h
 		this.editor.sdSetPreferSize({ w, h })
-		const sdRequestWidth = this.editor.sdSize.sdRequestSize.w
-		const sdRequestHeight = this.editor.sdSize.sdRequestSize.h
-		const properShapeWidht = this.editor.sdSize.properShapeSize.w
-		const properShapeHeight = this.editor.sdSize.properShapeSize.h
+		const requestWidth = w <= 256 ? 256 : w <= 512 ? 512 : 1024
+		const requestHeight = requestWidth
 		const imageId = createShapeId()
-		this.editor.createShapes([
-			{
-				id: imageId,
-				type: 'image',
-				x: sdimageShape.x,
-				y: sdimageShape.y,
-				props: {
-					w: properShapeWidht,
-					h: properShapeHeight,
-				},
-			},
-		])
-		this.editor.deselect(arrowShape.id)
-		this.editor.updateShapes([
-			{
-				id: arrowShape.id,
-				type: 'arrow',
-				props: {
-					end: {
-						type: 'binding',
-						isExact: false,
-						boundShapeId: imageId,
-						normalizedAnchor: { x: 0.5, y: 0.5 },
-					},
-				},
-			},
-		])
-		this.editor.deleteShapes([sdimageShape.id])
-
-		const imageShape = this.editor.getShapeById(imageId) as TLImageShape
-		const bindingShapes = this.findBindingTree(imageShape, false)
-		const textKindShapes = bindingShapes.filter((e) => 'text' in e.props && e.props.text)
-		const assetKindShapes = bindingShapes
-			.filter((e) => 'assetId' in e.props && e.props.assetId)
-			.map((e) => e as TLImageShape)
-		const allFrames = bindingShapes.filter((e) => e.type === 'frame')
-		const allTexts = textKindShapes.map((e) => ('text' in e.props ? e.props.text : '')).join(' ')
-		const allAssets: string[] = []
-		assetKindShapes.forEach((e) => {
-			const croppedAsset = this.getCroppedAsset(e)
-			if (croppedAsset) {
-				allAssets.push(croppedAsset)
-			}
-		})
-		const allAssetsDemoLimit = allAssets //.slice(-2)
-		const allFramesDemoLimit = allFrames //.slice(-1)
-		let sketchFrame = ''
-		if (allFramesDemoLimit.length === 1) {
-			const frame = allFramesDemoLimit[0] as TLFrameShape
-			const svg = await this.editor.getSvg([frame.id], {
-				scale: 1,
-				background: this.editor.instanceState.exportBackground,
-			})
-			if (svg) {
-				const image = await getSvgAsImage(svg, {
-					type: 'png',
-					quality: 1,
+		const bindingShapes = this.findBindingTree(sdimageShape, false)
+		let allTexts = ''
+		const allAssets: { blob: Blob; hasTransparency: boolean; index: number }[] = []
+		for (let i = 0; i < bindingShapes.length; i++) {
+			const e = bindingShapes[bindingShapes.length - i - 1]
+			if ('text' in e.props && e.props.text) {
+				if (!allTexts.length) {
+					allTexts += ' '
+				}
+				allTexts += e.props.text
+			} else if (allAssets.length) {
+				continue
+			} else if (e.type === 'image' && 'assetId' in e.props && e.props.assetId) {
+				const data = await this.getCroppedData(e as TLImageShape, 'blob')
+				if (data && 'blob' in data) {
+					allAssets.push({ ...data, index: i })
+				}
+			} else if (e.type === 'frame') {
+				const svg = await this.editor.getSvg([e.id], {
 					scale: 1,
+					background: false,
 				})
-				if (image) {
-					const blobToBase64 = (blob: Blob) => {
-						return new Promise((resolve, _) => {
-							const reader = new FileReader()
-							reader.onloadend = () => resolve(reader.result)
-							reader.readAsDataURL(blob)
-						})
+				if (svg) {
+					const base64 = await getSvgAsDataUrl(svg)
+					const asset = await this.getBlobFromBase64(base64)
+					URL.revokeObjectURL(base64)
+					if (asset) {
+						const { blob, hasTransparency } = asset
+						allAssets.push({ blob, hasTransparency: hasTransparency, index: i })
 					}
-					sketchFrame = (await blobToBase64(image)) as string
 				}
 			}
 		}
-		// https://github.com/Mikubill/sd-webui-controlnet/blob/7b707dc1f03c3070f8a506ff70a2b68173d57bb5/scripts/external_code.py
-		const args: object[] = allAssetsDemoLimit.map((e) => ({
-			control_mode: 'Balanced',
-			module: 'reference_only',
-			resize_mode: 'Crop and Resize',
-			weight: 0.5,
-			...this.editor.sdcnParameterObject,
-			image: e,
-		}))
-		if (sketchFrame) {
-			args.push({
-				control_mode: 'Balanced',
-				model: 'control_v11p_sd15_scribble [d4ba51ff]',
-				module: 'scribble_pidinet',
-				resize_mode: 'Resize and Fill',
-				weight: 0.5,
-				...this.editor.sdcnParameterObject,
-				image: sketchFrame,
-			})
+
+		const isVariations = allAssets[0] && allAssets[0].index === 0 && !allAssets[0].hasTransparency
+		const isEdits = allAssets[0] && allAssets[0].hasTransparency
+		const url =
+			this.editor.openaiURL +
+			'/v1/images' +
+			(isVariations ? '/variations' : isEdits ? '/edits' : '/generations')
+
+		let body
+		let headers
+		if (isVariations) {
+			const formData = new FormData()
+			formData.append('image', allAssets[0].blob)
+			formData.append('n', '1')
+			formData.append('size', `${requestWidth}x${requestHeight}`)
+			formData.append('response_format', 'b64_json')
+			body = formData
+		} else if (isEdits) {
+			if (!allTexts) {
+				this.editor.emit('ai-need-text')
+				this.editor.deleteShapes([arrowShape.id])
+				return
+			}
+			const formData = new FormData()
+			formData.append('image', allAssets[0].blob)
+			formData.append('prompt', allTexts)
+			formData.append('n', '1')
+			formData.append('size', `${requestWidth}x${requestHeight}`)
+			formData.append('response_format', 'b64_json')
+			body = formData
+		} else {
+			if (!allTexts) {
+				this.editor.emit('ai-need-text')
+				this.editor.deleteShapes([arrowShape.id])
+				return
+			}
+			const bodyObject: any = {
+				prompt: allTexts,
+				n: 1,
+				response_format: 'b64_json',
+				size: `${requestWidth}x${requestHeight}`,
+			}
+			body = JSON.stringify(bodyObject)
+			headers = { 'content-type': 'application/json' }
 		}
-		const alwayson_scripts = args.length
-			? {
-					controlnet: {
-						args,
-					},
-			  }
-			: undefined
-		const body = JSON.stringify({
-			prompt: allTexts,
-			...this.editor.sdParameterObject,
-			width: sdRequestWidth,
-			height: sdRequestHeight,
-			alwayson_scripts,
-		})
-		// console.log(body)
-		fetch(this.editor.sdURL + '/sdapi/v1/txt2img', {
+		fetch(url, {
 			method: 'POST',
-			headers: { 'Content-Type': 'application/json' },
+			headers,
 			body,
 		})
 			.then((response) => response.json())
 			.then((data) => {
 				const assetId = AssetRecordType.createId()
-				const assetSrc = 'data:image/png;base64,' + data['images'][0]
+				const assetSrc = 'data:image/png;base64,' + data['data'][0]['b64_json']
 				const responseImage = new Image()
 				responseImage.src = assetSrc
 				const sdResponseWidth = responseImage.width
@@ -404,7 +431,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 						typeName: 'asset',
 						props: {
 							name: 'file',
-							src: 'data:image/png;base64,' + data['images'][0],
+							src: assetSrc,
 							w: sdResponseWidth,
 							h: sdResponseHeight,
 							mimeType: null,
@@ -425,6 +452,34 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 			.catch((error) => {
 				console.error(error)
 			})
+		this.editor.createShapes([
+			{
+				id: imageId,
+				type: 'image',
+				x: sdimageShape.x,
+				y: sdimageShape.y,
+				props: {
+					w: sdimageShape.props.w,
+					h: sdimageShape.props.h,
+				},
+			},
+		])
+		this.editor.deselect(arrowShape.id)
+		this.editor.updateShapes([
+			{
+				id: arrowShape.id,
+				type: 'arrow',
+				props: {
+					end: {
+						type: 'binding',
+						isExact: false,
+						boundShapeId: imageId,
+						normalizedAnchor: { x: 0.5, y: 0.5 },
+					},
+				},
+			},
+		])
+		this.editor.deleteShapes([sdimageShape.id])
 	}
 
 	onTextToText = (

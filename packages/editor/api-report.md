@@ -58,6 +58,7 @@ import { TLGroupShape } from '@tldraw/tlschema';
 import { TLHandle } from '@tldraw/tlschema';
 import { TLHighlightShape } from '@tldraw/tlschema';
 import { TLImageAsset } from '@tldraw/tlschema';
+import { TLImageCrop } from '@tldraw/tlschema';
 import { TLImageShape } from '@tldraw/tlschema';
 import { TLInstance } from '@tldraw/tlschema';
 import { TLInstancePageState } from '@tldraw/tlschema';
@@ -128,11 +129,32 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
     // (undocumented)
     getArrowInfo(shape: TLArrowShape): ArrowInfo | undefined;
     // (undocumented)
+    getBase64FromBase64: (base64: string, crop?: null | TLImageCrop) => Promise<{
+        base64: string;
+        hasTransparency: boolean;
+    }>;
+    // (undocumented)
+    getBlobFromBase64: (base64: string, crop?: null | TLImageCrop) => Promise<{
+        blob: Blob;
+        hasTransparency: boolean;
+    }>;
+    // (undocumented)
     getBounds(shape: TLArrowShape): Box2d;
     // (undocumented)
     getCenter(shape: TLArrowShape): Vec2d;
     // (undocumented)
-    getCroppedAsset: (imageShape: TLImageShape) => null | string;
+    getCroppedData: (imageShape: TLImageShape, type: 'base64' | 'blob') => Promise<{
+        base64: string;
+        hasTransparency: boolean;
+    } | {
+        blob: Blob;
+        hasTransparency: boolean;
+    } | null>;
+    // (undocumented)
+    getDataFromBase64: (base64: string, _crop?: null | TLImageCrop) => Promise<{
+        canvas: HTMLCanvasElement;
+        hasTransparency: boolean;
+    }>;
     // (undocumented)
     getEditingBounds: (shape: TLArrowShape) => Box2d;
     // (undocumented)
@@ -143,6 +165,8 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
     getOutline(shape: TLArrowShape): Vec2dModel[];
     // (undocumented)
     getOutlineWithoutLabel(shape: TLArrowShape): VecLike[];
+    // (undocumented)
+    hasTransparency: (base64: string) => Promise<boolean>;
     // (undocumented)
     hideResizeHandles: TLShapeUtilFlag<TLArrowShape>;
     // (undocumented)
@@ -162,6 +186,8 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
     // (undocumented)
     get labelBoundsCache(): ComputedCache<Box2d | null, TLArrowShape>;
     // (undocumented)
+    loadImage: (base64: string) => Promise<HTMLImageElement>;
+    // (undocumented)
     onAnyToImage: (arrowShape: TLArrowShape, sdimageShape: TLSdimageShape) => Promise<void>;
     // (undocumented)
     onDoubleClickHandle: (shape: TLArrowShape, handle: TLHandle) => TLShapePartial<TLArrowShape> | void;
@@ -172,7 +198,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
     // (undocumented)
     onHandleChange: TLOnHandleChangeHandler<TLArrowShape>;
     // (undocumented)
-    onImageToText: (arrowShape: TLArrowShape, startImageShape: TLImageShape, endEmptyGeoShape?: TLGeoShape) => void;
+    onImageToText: (arrowShape: TLArrowShape, startImageShape: TLImageShape, endEmptyGeoShape?: TLGeoShape) => Promise<void>;
     // (undocumented)
     onResize: TLOnResizeHandler<TLArrowShape>;
     // (undocumented)
@@ -602,6 +628,8 @@ export class Editor extends EventEmitter<TLEventMap> {
     nudgeShapes(ids: TLShapeId[], direction: Vec2dModel, major?: boolean, ephemeral?: boolean): this;
     get onlySelectedShape(): null | TLShape;
     get opacity(): null | number;
+    // (undocumented)
+    get openaiURL(): string;
     get openMenus(): string[];
     packShapes(ids?: TLShapeId[], padding?: number): this;
     get pages(): TLPage[];
@@ -869,6 +897,8 @@ export class FrameShapeUtil extends BaseBoxShapeUtil<TLFrameShape> {
     defaultProps(): TLFrameShape['props'];
     // (undocumented)
     indicator(shape: TLFrameShape): JSX.Element;
+    // (undocumented)
+    isAspectRatioLocked: (_shape: TLFrameShape) => boolean;
     // (undocumented)
     onDragShapesOut: (_shape: TLFrameShape, shapes: TLShape[]) => void;
     // (undocumented)
@@ -2419,6 +2449,8 @@ export type TLEventInfo = TLCancelEventInfo | TLClickEventInfo | TLCompleteEvent
 
 // @public (undocumented)
 export interface TLEventMap {
+    // (undocumented)
+    'ai-need-text': [];
     // (undocumented)
     'change-history': [{
         reason: 'bail';
