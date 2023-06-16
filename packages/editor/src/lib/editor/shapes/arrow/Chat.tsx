@@ -1,14 +1,12 @@
+import { OPENAI_URL } from '../../../constants'
+
 export type Message = {
 	role: 'assistant' | 'user' | 'system'
 	content: string
 }
 
-const OPENAI_API_HOST = 'https://chat.postneko.workers.dev'
-// api.openai.com
-// chat.postneko.workers.dev
-
 export const OpenAIStream = async (messages: Message[], callback: (content: string) => void) => {
-	const url = `${OPENAI_API_HOST}/v1/chat/completions`
+	const url = OPENAI_URL + '/v1/chat/completions'
 	const decoder = new TextDecoder()
 	const x = {
 		headers: { 'Content-Type': 'application/json' },

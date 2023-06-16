@@ -280,3 +280,9 @@ export const SD_MAX = 1024
 export const SD_MIN = 256
 /** @internal */
 export const SD_MAX_RATIO = SD_MAX / SD_MIN
+/** @internal */
+export const SD_URL = 'https://sd.postneko.workers.dev'
+/** @internal */
+export const SD_LOCAL_URL = 'http://localhost:7860'
+/** @internal */
+export const OPENAI_URL = 'https://chat.postneko.workers.dev' // api.openai.com

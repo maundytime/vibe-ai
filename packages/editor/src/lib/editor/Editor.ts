@@ -101,9 +101,12 @@ import {
 	MAX_ZOOM,
 	MINOR_NUDGE_FACTOR,
 	MIN_ZOOM,
+	OPENAI_URL,
+	SD_LOCAL_URL,
 	SD_MAX,
 	SD_MAX_RATIO,
 	SD_MIN,
+	SD_URL,
 	STYLES,
 	SVG_PADDING,
 	ZOOMS,
@@ -188,8 +191,12 @@ export class Editor extends EventEmitter<TLEventMap> {
 		return process.env.NODE_ENV === 'development'
 	}
 
+	get openaiURL() {
+		return OPENAI_URL
+	}
+
 	get sdURL() {
-		return this.isDev ? 'http://localhost:7860' : 'https://sd.postneko.workers.dev'
+		return this.isDev ? SD_LOCAL_URL : SD_URL
 	}
 
 	get sdInterrogateModel() {
