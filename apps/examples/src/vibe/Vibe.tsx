@@ -1,8 +1,8 @@
 import { SdimageShape, Tldraw, toolbarItem, uniqueId, useEditor, useToasts } from '@tldraw/tldraw'
 import { useEffect } from 'react'
 import { track } from 'signia-react'
+import tips from './dall-e-tips.json'
 import './styles.css'
-import tips from './tips.json'
 
 export default function Vibe() {
 	return (
@@ -48,6 +48,7 @@ const CustomUi = track(() => {
 
 	useEffect(() => {
 		if (!editor.renderingShapes.length) {
+			editor.createAssets(tips.assets as any)
 			editor.createShapes(tips.shapes as any)
 			editor.zoomToContent()
 		}

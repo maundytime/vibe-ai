@@ -19,7 +19,7 @@ export class FrameShapeUtil extends BaseBoxShapeUtil<TLFrameShape> {
 	override canEdit = () => true
 
 	override defaultProps(): TLFrameShape['props'] {
-		return { w: 160 * 2, h: 90 * 2, name: '' }
+		return { w: 256, h: 256, name: '' }
 	}
 
 	override render(shape: TLFrameShape) {
